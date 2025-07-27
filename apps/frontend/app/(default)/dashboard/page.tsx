@@ -109,7 +109,7 @@ export default function DashboardPage() {
 						<h1 className="text-3xl font-semibold pb-2 text-white">
 							Your{' '}
 							<span className="bg-gradient-to-r from-pink-400 to-purple-400 text-transparent bg-clip-text">
-								Resume Matcher
+								Resume Analysis
 							</span>{' '}
 							Dashboard
 						</h1>
