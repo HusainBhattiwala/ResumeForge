@@ -61,6 +61,47 @@ class ResumeService:
             if os.path.exists(temp_path):
                 os.remove(temp_path)
 
+    def _clean_json_string(self, json_str: str) -> str:
+        """
+        Cleans common JSON formatting issues that can cause parsing errors.
+        """
+        import re
+        
+        # Remove any leading/trailing whitespace
+        json_str = json_str.strip()
+        
+        # Remove markdown code block markers if present
+        if json_str.startswith('```json'):
+            json_str = json_str[7:]
+        if json_str.startswith('```'):
+            json_str = json_str[3:]
+        if json_str.endswith('```'):
+            json_str = json_str[:-3]
+        
+        # Remove any trailing commas before closing braces/brackets
+        json_str = re.sub(r',(\s*[}\]])', r'\1', json_str)
+        
+        return json_str.strip()
+
+    def _ensure_keywords(self, structured_resume: dict) -> list:
+        """
+        Ensures that keywords are always available by extracting them from skills if needed.
+        """
+        keywords = structured_resume.get("extracted_keywords", [])
+        
+        # If no keywords were extracted, generate them from skills
+        if not keywords or len(keywords) == 0:
+            skills = structured_resume.get("skills", [])
+            if skills:
+                keywords = [skill.get("skillName", "") for skill in skills if skill.get("skillName")]
+                # Also add categories as keywords
+                categories = list(set([skill.get("category", "") for skill in skills if skill.get("category")]))
+                keywords.extend(categories)
+                # Remove empty strings and duplicates
+                keywords = list(set([k.strip() for k in keywords if k.strip()]))
+        
+        return keywords
+
     def _get_file_extension(self, file_type: str) -> str:
         """Returns the appropriate file extension based on MIME type"""
         if file_type == "application/pdf":
@@ -135,12 +176,8 @@ class ResumeService:
                 else None,
                 extracted_keywords=json.dumps(
                     {
-                        "extracted_keywords": structured_resume.get(
-                            "extracted_keywords", []
-                        )
+                        "extracted_keywords": self._ensure_keywords(structured_resume)
                     }
-                    if structured_resume.get("extracted_keywords")
-                    else None
                 ),
             )
 
@@ -171,9 +208,24 @@ class ResumeService:
         logger.info(f"Structured Resume Prompt: {prompt}")
         raw_output = await self.json_agent_manager.run(prompt=prompt)
 
+        # Clean and validate JSON response
+        try:
+            if isinstance(raw_output, str):
+                # Clean the JSON string before parsing
+                cleaned_json_str = self._clean_json_string(raw_output)
+                cleaned_output = json.loads(cleaned_json_str)
+            else:
+                cleaned_output = raw_output
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON parsing error: {str(e)}")
+            logger.error(f"Raw output: {raw_output}")
+            raise ResumeValidationError(
+                message=f"AI returned invalid JSON: {str(e)}. Please try uploading your resume again.",
+            )
+
         try:
             structured_resume: StructuredResumeModel = (
-                StructuredResumeModel.model_validate(raw_output)
+                StructuredResumeModel.model_validate(cleaned_output)
             )
         except ValidationError as e:
             logger.info(f"Validation error: {e}")

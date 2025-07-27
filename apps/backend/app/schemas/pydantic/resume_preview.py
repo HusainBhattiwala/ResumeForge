@@ -15,7 +15,7 @@ class PersonalInfo(BaseModel):
 
 class ExperienceItem(BaseModel):
     id: int
-    title: str
+    title: Optional[str] = ""
     company: Optional[str] = None
     location: Optional[str] = None
     years: Optional[str] = None

@@ -5,6 +5,7 @@ from .exceptions import ProviderError
 from .strategies.wrapper import JSONWrapper, MDWrapper
 from .providers.ollama import OllamaProvider, OllamaEmbeddingProvider
 from .providers.openai import OpenAIProvider, OpenAIEmbeddingProvider
+from .providers.gemini import GeminiProvider, GeminiEmbeddingProvider
 
 
 class AgentManager:
@@ -18,11 +19,19 @@ class AgentManager:
                 self.strategy = JSONWrapper()
         self.model = model
 
-    async def _get_provider(self, **kwargs: Any) -> OllamaProvider | OpenAIProvider:
-        api_key = kwargs.get("openai_api_key", os.getenv("OPENAI_API_KEY"))
-        if api_key:
-            return OpenAIProvider(api_key=api_key)
+    async def _get_provider(self, **kwargs: Any) -> OllamaProvider | OpenAIProvider | GeminiProvider:
+        # Check for Gemini API key first
+        gemini_api_key = kwargs.get("gemini_api_key", os.getenv("GEMINI_API_KEY")) or kwargs.get("google_api_key", os.getenv("GOOGLE_API_KEY"))
+        if gemini_api_key:
+            model = kwargs.get("model", "gemini-1.5-flash")
+            return GeminiProvider(api_key=gemini_api_key, model=model)
+        
+        # Check for OpenAI API key
+        openai_api_key = kwargs.get("openai_api_key", os.getenv("OPENAI_API_KEY"))
+        if openai_api_key:
+            return OpenAIProvider(api_key=openai_api_key)
 
+        # Fallback to Ollama
         model = kwargs.get("model", self.model)
         installed_ollama_models = await OllamaProvider.get_installed_models()
         if model not in installed_ollama_models:
@@ -45,10 +54,19 @@ class EmbeddingManager:
 
     async def _get_embedding_provider(
         self, **kwargs: Any
-    ) -> OllamaEmbeddingProvider | OpenAIEmbeddingProvider:
-        api_key = kwargs.get("openai_api_key", os.getenv("OPENAI_API_KEY"))
-        if api_key:
-            return OpenAIEmbeddingProvider(api_key=api_key)
+    ) -> OllamaEmbeddingProvider | OpenAIEmbeddingProvider | GeminiEmbeddingProvider:
+        # Check for Gemini API key first
+        gemini_api_key = kwargs.get("gemini_api_key", os.getenv("GEMINI_API_KEY")) or kwargs.get("google_api_key", os.getenv("GOOGLE_API_KEY"))
+        if gemini_api_key:
+            embedding_model = kwargs.get("embedding_model", "gemini-embedding-001")
+            return GeminiEmbeddingProvider(api_key=gemini_api_key, embedding_model=embedding_model)
+        
+        # Check for OpenAI API key
+        openai_api_key = kwargs.get("openai_api_key", os.getenv("OPENAI_API_KEY"))
+        if openai_api_key:
+            return OpenAIEmbeddingProvider(api_key=openai_api_key)
+        
+        # Fallback to Ollama
         model = kwargs.get("embedding_model", self._model)
         installed_ollama_models = await OllamaProvider.get_installed_models()
         if model not in installed_ollama_models:

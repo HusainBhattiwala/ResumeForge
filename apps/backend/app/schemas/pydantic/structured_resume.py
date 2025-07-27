@@ -3,8 +3,8 @@ from pydantic import BaseModel, Field
 
 
 class Location(BaseModel):
-    city: str
-    country: str
+    city: Optional[str] = ""
+    country: Optional[str] = ""
 
 
 class PersonalData(BaseModel):
@@ -18,11 +18,11 @@ class PersonalData(BaseModel):
 
 
 class Experience(BaseModel):
-    job_title: str = Field(..., alias="jobTitle")
+    job_title: Optional[str] = Field("", alias="jobTitle")
     company: str
-    location: str
-    start_date: str = Field(..., alias="startDate")
-    end_date: str = Field(..., alias="endDate")
+    location: Optional[str] = Field("", alias="location")
+    start_date: Optional[str] = Field("", alias="startDate")
+    end_date: Optional[str] = Field("", alias="endDate")
     description: List[str]
     technologies_used: Optional[List[str]] = Field(
         default_factory=list, alias="technologiesUsed"
@@ -55,7 +55,7 @@ class Education(BaseModel):
     institution: str
     degree: str
     field_of_study: Optional[str] = Field(None, alias="fieldOfStudy")
-    start_date: str = Field(..., alias="startDate")
+    start_date: Optional[str] = Field("", alias="startDate")
     end_date: str = Field(..., alias="endDate")
     grade: Optional[str] = None
     description: Optional[str] = None

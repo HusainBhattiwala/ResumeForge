@@ -80,9 +80,18 @@ export default function DashboardPage() {
 	}
 
 	const { data } = improvedData;
-	const { resume_preview, new_score } = data;
+	const { resume_preview, new_score, detailed_analysis } = data;
 	const preview = resume_preview ?? mockResumeData;
 	const newPct = Math.round(new_score * 100);
+	
+	// Generate details and commentary from detailed_analysis if available
+	const details = detailed_analysis 
+		? `Overall match: ${detailed_analysis.overall_match_score || 'N/A'}`
+		: 'Analysis details not available';
+	
+	const commentary = detailed_analysis?.strengths?.length > 0 
+		? detailed_analysis.strengths.slice(0, 2).join('. ') + '.'
+		: 'Analysis commentary not available';
 
 	const handleJobUpload = async (text: string): Promise<AnalyzedJobData | null> => {
 		void text; // Prevent unused variable warning
@@ -100,7 +109,7 @@ export default function DashboardPage() {
 						<h1 className="text-3xl font-semibold pb-2 text-white">
 							Your{' '}
 							<span className="bg-gradient-to-r from-pink-400 to-purple-400 text-transparent bg-clip-text">
-								ResumeForge
+								Resume Matcher
 							</span>{' '}
 							Dashboard
 						</h1>
@@ -119,9 +128,10 @@ export default function DashboardPage() {
 							<section>
 								<ResumeAnalysis
 									score={newPct}
-									details={improvedData.data.details ?? ''}
-									commentary={improvedData.data.commentary ?? ''}
-									improvements={improvedData.data.improvements ?? []}
+									details={details}
+									commentary={commentary}
+									improvements={[]} // Keep empty since we're using detailed_analysis
+									detailed_analysis={detailed_analysis}
 								/>
 							</section>
 						</div>

@@ -1,7 +1,7 @@
 import enum
 
 from typing import Optional, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class EmploymentTypeEnum(str, enum.Enum):
@@ -53,7 +53,7 @@ class RemoteStatusEnum(str, enum.Enum):
 
 
 class CompanyProfile(BaseModel):
-    company_name: str = Field(..., alias="companyName")
+    company_name: Optional[str] = Field("", alias="companyName")
     industry: Optional[str] = None
     website: Optional[str] = None
     description: Optional[str] = None
@@ -63,7 +63,14 @@ class Location(BaseModel):
     city: Optional[str] = None
     state: Optional[str] = None
     country: Optional[str] = None
-    remote_status: RemoteStatusEnum = Field(..., alias="remoteStatus")
+    remote_status: RemoteStatusEnum = Field(RemoteStatusEnum.NOT_SPECIFIED, alias="remoteStatus")
+    
+    @field_validator('remote_status', mode='before')
+    @classmethod
+    def validate_remote_status(cls, v):
+        if v is None or v == "":
+            return RemoteStatusEnum.NOT_SPECIFIED.value
+        return v
 
 
 class Qualifications(BaseModel):
@@ -83,12 +90,12 @@ class ApplicationInfo(BaseModel):
 
 
 class StructuredJobModel(BaseModel):
-    job_title: str = Field(..., alias="jobTitle")
+    job_title: Optional[str] = Field("", alias="jobTitle")
     company_profile: CompanyProfile = Field(..., alias="companyProfile")
     location: Location
-    date_posted: str = Field(..., alias="datePosted")
-    employment_type: EmploymentTypeEnum = Field(..., alias="employmentType")
-    job_summary: str = Field(..., alias="jobSummary")
+    date_posted: Optional[str] = Field("", alias="datePosted")
+    employment_type: EmploymentTypeEnum = Field(EmploymentTypeEnum.NOT_SPECIFIED, alias="employmentType")
+    job_summary: Optional[str] = Field("", alias="jobSummary")
     key_responsibilities: List[str] = Field(..., alias="keyResponsibilities")
     qualifications: Qualifications
     compensation_and_benefits: Optional[CompensationAndBenefits] = Field(
@@ -96,6 +103,13 @@ class StructuredJobModel(BaseModel):
     )
     application_info: Optional[ApplicationInfo] = Field(None, alias="applicationInfo")
     extracted_keywords: List[str] = Field(..., alias="extractedKeywords")
+
+    @field_validator('employment_type', mode='before')
+    @classmethod
+    def validate_employment_type(cls, v):
+        if v is None or v == "":
+            return EmploymentTypeEnum.NOT_SPECIFIED.value
+        return v
 
     class ConfigDict:
         validate_by_name = True

@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     DB_ECHO: bool = False
     PYTHONDONTWRITEBYTECODE: int = 1
 
+    GEMINI_API_KEY: Optional[str] = None
+    GOOGLE_API_KEY: Optional[str] = None
+    OPENAI_API_KEY: Optional[str] = None
+
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, ".env"),
         env_file_encoding="utf-8",
