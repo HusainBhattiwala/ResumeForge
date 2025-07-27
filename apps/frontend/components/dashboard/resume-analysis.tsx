@@ -120,25 +120,116 @@ const ResumeAnalysis: React.FC<ResumeAnalysisProps> = ({
               </div>
             </div>
 
-            <div>
-              <h4 className="text-xl font-semibold text-blue-400 mb-3">Improvement Suggestions</h4>
-              {improvements.length > 0 ? (
-                <ul className="space-y-3">
-                  {improvements.map((item, idx) => (
-                    <li key={idx} className="bg-gray-800 p-4 rounded-md shadow">
-                      <p className="text-gray-200 text-sm">{item.suggestion}</p>
-                      {item.lineNumber && (
-                        <p className="text-xs text-gray-500 mt-1">Reference: {item.lineNumber}</p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-400 text-sm">
-                  No specific improvement suggestions at this time.
-                </p>
-              )}
-            </div>
+            {detailed_analysis && (
+              <div className="space-y-6">
+                {/* Strengths Section */}
+                <div>
+                  <h4 className="text-xl font-semibold text-green-400 mb-3">Strengths</h4>
+                  <ul className="space-y-2">
+                    {detailed_analysis.strengths.map((strength, idx) => (
+                      <li key={idx} className="bg-gray-800 p-3 rounded-md">
+                        <p className="text-gray-200 text-sm">{strength}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Gaps Section */}
+                <div>
+                  <h4 className="text-xl font-semibold text-red-400 mb-3">Areas for Improvement</h4>
+                  <ul className="space-y-2">
+                    {detailed_analysis.gaps.map((gap, idx) => (
+                      <li key={idx} className="bg-gray-800 p-3 rounded-md">
+                        <p className="text-gray-200 text-sm">{gap}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Keyword Analysis */}
+                <div>
+                  <h4 className="text-xl font-semibold text-blue-400 mb-3">Keyword Analysis</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gray-800 p-4 rounded-md">
+                      <h5 className="text-lg font-medium text-green-400 mb-2">Matched Keywords</h5>
+                      <div className="flex flex-wrap gap-2">
+                        {detailed_analysis.keyword_analysis.matched_keywords.map((keyword, idx) => (
+                          <span
+                            key={idx}
+                            className="bg-green-600/20 text-green-300 px-2 py-1 rounded-md text-xs"
+                          >
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-gray-800 p-4 rounded-md">
+                      <h5 className="text-lg font-medium text-red-400 mb-2">Missing Keywords</h5>
+                      <div className="flex flex-wrap gap-2">
+                        {detailed_analysis.keyword_analysis.missing_keywords.map((keyword, idx) => (
+                          <span
+                            key={idx}
+                            className="bg-red-600/20 text-red-300 px-2 py-1 rounded-md text-xs"
+                          >
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Improvement Recommendations */}
+                <div>
+                  <h4 className="text-xl font-semibold text-purple-400 mb-3">Improvement Recommendations</h4>
+                  <div className="space-y-3">
+                    {detailed_analysis.improvement_recommendations.map((rec, idx) => (
+                      <div key={idx} className="bg-gray-800 p-4 rounded-md">
+                        <div className="flex items-center justify-between mb-2">
+                          <span
+                            className={`px-2 py-1 rounded-md text-xs font-medium ${
+                              rec.priority === 'high'
+                                ? 'bg-red-600/20 text-red-300'
+                                : rec.priority === 'medium'
+                                ? 'bg-yellow-600/20 text-yellow-300'
+                                : 'bg-blue-600/20 text-blue-300'
+                            }`}
+                          >
+                            {rec.priority.toUpperCase()} PRIORITY
+                          </span>
+                        </div>
+                        <p className="text-gray-200 text-sm mb-2">{rec.recommendation}</p>
+                        <p className="text-gray-400 text-xs">
+                          <strong>Impact:</strong> {rec.impact}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!detailed_analysis && (
+              <div>
+                <h4 className="text-xl font-semibold text-blue-400 mb-3">Improvement Suggestions</h4>
+                {improvements.length > 0 ? (
+                  <ul className="space-y-3">
+                    {improvements.map((item, idx) => (
+                      <li key={idx} className="bg-gray-800 p-4 rounded-md shadow">
+                        <p className="text-gray-200 text-sm">{item.suggestion}</p>
+                        {item.lineNumber && (
+                          <p className="text-xs text-gray-500 mt-1">Reference: {item.lineNumber}</p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-400 text-sm">
+                    No specific improvement suggestions at this time.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           <DialogFooter className="p-6 border-t border-gray-700">
